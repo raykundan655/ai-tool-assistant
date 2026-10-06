@@ -1,6 +1,6 @@
-# Agentic AI Chatbot with Tool Augmentation & State Persistence
+# Autonomous Agentic AI System with Dynamic Tool Integration & Persistent Memory
 
-An End-to-End Autonomous AI Agent Application Built with **Google Gemini 2.5 Flash**, **LangChain**, **Streamlit**, and **SQLite Checkpointing**.
+An End-to-End Autonomous AI Agent Application Built with **Google Gemini 2.5 Flash**, **Streamlit**, **SQLite Checkpointing**, and **Python**.
 
 ---
 
@@ -8,13 +8,13 @@ An End-to-End Autonomous AI Agent Application Built with **Google Gemini 2.5 Fla
 
 This project demonstrates the design and implementation of an **Agentic AI Assistant** capable of autonomous reasoning, dynamic tool selection, external API interaction, and persistent conversational memory across sessions.
 
-Unlike conventional static chatbot pipelines, this architecture utilizes a **state-driven agent workflow**. The agent dynamically decides whether to answer user queries directly using its parametric knowledge or invoke external domain tools (such as real-time weather APIs, arithmetic calculators, and web search engines) before formulating a response.
+Unlike conventional static chatbot pipelines, this architecture utilizes a **state-driven autonomous agent workflow**. The AI engine dynamically evaluates user queries to decide whether to answer directly using its parametric knowledge or invoke external domain tools (such as real-time weather APIs, arithmetic calculators, and web search engines) before formulating a final response.
 
 ---
 
 ## 🏗️ System Architecture & Workflow
 
-The core reasoning engine is modeled as a stateful graph where conversation states are saved to an SQLite database checkpoint after each transition.
+The core reasoning engine is built as a stateful event-loop architecture where conversation states are saved to an SQLite database checkpoint after each transition.
 
 ```mermaid
 graph TD
@@ -40,7 +40,7 @@ graph TD
 ### Execution Flow:
 1. **User Query Input**: The user sends a prompt via the Streamlit interactive chat interface.
 2. **State Initialization**: The message is added to the state reducer (`add_messages`) under a unique `thread_id`.
-3. **LLM Node (`chitchat`)**: The system prompt and message history are passed to `Gemini 2.5 Flash`, which evaluates if domain tools are required.
+3. **LLM Reasoning Node (`chitchat`)**: The system prompt and message history are passed to `Gemini 2.5 Flash`, which evaluates if domain tools are required.
 4. **Conditional Routing (`tools_condition`)**:
    - **If Tool Required**: Execution branches to tool execution, where the corresponding tool function (`calculator`, `getweather`, or `DuckDuckGoSearchRun`) is invoked. The output is fed back to the LLM node.
    - **If No Tool Needed**: Execution terminates (`END`) and the response streams back to the UI.
@@ -51,7 +51,7 @@ graph TD
 ## 🚀 Key Features
 
 - **Agentic Decision-Making & Tool Binding**: The LLM intelligently binds to external tools and determines arguments autonomously based on prompt context.
-- **Persistent Conversation Threads**: Full session memory using `SqliteSaver`. Users can switch between previous chat threads or start new sessions without losing context.
+- **Persistent Conversation Threads**: Full session memory using an SQLite Checkpointer. Users can switch between previous chat threads or start new sessions without losing context.
 - **Real-Time Token Streaming**: Leverages message streaming events (`stream_mode='messages'`) for low-latency response delivery in Streamlit.
 - **Error-Resilient Custom Tools**: Includes defensive exception handling (e.g., zero-division checks in math functions, HTTP status validation for API requests).
 
@@ -63,7 +63,7 @@ graph TD
 | :--- | :--- | :--- |
 | `getweather` | Custom `@tool` | Queries live weather data from **WeatherAPI** (`api.weatherapi.com`) via HTTP GET requests. |
 | `calculator` | Custom `@tool` | Performs exact floating-point arithmetic (Addition, Subtraction, Multiplication, Division) with zero-division error handling. |
-| `search_tool` | Community Tool | Performs live web searches via `DuckDuckGoSearchRun` for up-to-date real-world facts. |
+| `search_tool` | Search Tool | Performs live web searches via `DuckDuckGoSearchRun` for up-to-date real-world facts. |
 
 ---
 
@@ -71,7 +71,6 @@ graph TD
 
 - **Language**: Python 3.10+
 - **LLM Engine**: `ChatGoogleGenerativeAI` (`gemini-2.5-flash`)
-- **Agent Orchestration**: `LangChain Core`, `LangChain Community`
 - **Frontend UI**: `Streamlit`
 - **Database / Memory**: SQLite3 (`SqliteSaver` checkpointer)
 - **External APIs**: WeatherAPI, DuckDuckGo Search API
@@ -172,4 +171,4 @@ streamlit run tool_frontend.py
 ## 📜 Author & Acknowledgments
 
 - **Developer**: Mahi (`raikundan655@gmail.com`)
-- **Frameworks**: Built using [Google Generative AI](https://ai.google.dev/), [LangChain](https://python.langchain.com/), and [Streamlit](https://streamlit.io/).
+- **Technologies**: Built using [Google Generative AI API](https://ai.google.dev/), Python, and [Streamlit](https://streamlit.io/).
