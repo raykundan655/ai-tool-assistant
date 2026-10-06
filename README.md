@@ -1,6 +1,6 @@
 # Agentic AI Chatbot with Tool Augmentation & State Persistence
 
-An End-to-End Autonomous AI Agent Application Built with **LangGraph**, **Google Gemini 2.5 Flash**, **Streamlit**, and **SQLite Checkpointing**.
+An End-to-End Autonomous AI Agent Application Built with **Google Gemini 2.5 Flash**, **LangChain**, **Streamlit**, and **SQLite Checkpointing**.
 
 ---
 
@@ -8,7 +8,7 @@ An End-to-End Autonomous AI Agent Application Built with **LangGraph**, **Google
 
 This project demonstrates the design and implementation of an **Agentic AI Assistant** capable of autonomous reasoning, dynamic tool selection, external API interaction, and persistent conversational memory across sessions.
 
-Unlike conventional static chatbot pipelines, this architecture utilizes a **graph-based state machine (LangGraph)**. The agent dynamically decides whether to answer user queries directly using its parametric knowledge or invoke external domain tools (such as real-time weather APIs, arithmetic calculators, and web search engines) before formulating a response.
+Unlike conventional static chatbot pipelines, this architecture utilizes a **state-driven agent workflow**. The agent dynamically decides whether to answer user queries directly using its parametric knowledge or invoke external domain tools (such as real-time weather APIs, arithmetic calculators, and web search engines) before formulating a response.
 
 ---
 
@@ -19,10 +19,10 @@ The core reasoning engine is modeled as a stateful graph where conversation stat
 ```mermaid
 graph TD
     A([USER INPUT]) --> B[Streamlit UI / Session Manager]
-    B --> C{LangGraph Engine}
+    B --> C{Stateful Agent Engine}
     C --> D[Node: chitchat / Gemini 2.5 LLM]
-    D --> E{tools_condition Edge}
-    E -- Tool Call Required --> F[Node: tools / ToolNode]
+    D --> E{Tools Condition Evaluator}
+    E -- Tool Call Required --> F[Node: tools / Tool Execution]
     F -- Tool Execution Output --> D
     E -- Direct Answer Complete --> G([END / Stream Output to UI])
     
@@ -42,7 +42,7 @@ graph TD
 2. **State Initialization**: The message is added to the state reducer (`add_messages`) under a unique `thread_id`.
 3. **LLM Node (`chitchat`)**: The system prompt and message history are passed to `Gemini 2.5 Flash`, which evaluates if domain tools are required.
 4. **Conditional Routing (`tools_condition`)**:
-   - **If Tool Required**: Execution branches to `ToolNode`, where the corresponding tool function (`calculator`, `getweather`, or `DuckDuckGoSearchRun`) is invoked. The output is fed back to the `chitchat` node.
+   - **If Tool Required**: Execution branches to tool execution, where the corresponding tool function (`calculator`, `getweather`, or `DuckDuckGoSearchRun`) is invoked. The output is fed back to the LLM node.
    - **If No Tool Needed**: Execution terminates (`END`) and the response streams back to the UI.
 5. **State Persistence**: The complete execution state and history are committed to SQLite (`chatdb.db`).
 
@@ -52,7 +52,7 @@ graph TD
 
 - **Agentic Decision-Making & Tool Binding**: The LLM intelligently binds to external tools and determines arguments autonomously based on prompt context.
 - **Persistent Conversation Threads**: Full session memory using `SqliteSaver`. Users can switch between previous chat threads or start new sessions without losing context.
-- **Real-Time Token Streaming**: Leverages LangGraph streaming events (`stream_mode='messages'`) for low-latency response delivery in Streamlit.
+- **Real-Time Token Streaming**: Leverages message streaming events (`stream_mode='messages'`) for low-latency response delivery in Streamlit.
 - **Error-Resilient Custom Tools**: Includes defensive exception handling (e.g., zero-division checks in math functions, HTTP status validation for API requests).
 
 ---
@@ -71,8 +71,7 @@ graph TD
 
 - **Language**: Python 3.10+
 - **LLM Engine**: `ChatGoogleGenerativeAI` (`gemini-2.5-flash`)
-- **Agent Framework**: `LangGraph` (`StateGraph`, `ToolNode`, `tools_condition`)
-- **Orchestration & Tools**: `LangChain Core`, `LangChain Community`
+- **Agent Orchestration**: `LangChain Core`, `LangChain Community`
 - **Frontend UI**: `Streamlit`
 - **Database / Memory**: SQLite3 (`SqliteSaver` checkpointer)
 - **External APIs**: WeatherAPI, DuckDuckGo Search API
@@ -84,7 +83,7 @@ graph TD
 ```
 AgenticAi/
 │
-├── tool_backend.py          # Core LangGraph state graph, tools definition, and SQLite checkpointer
+├── tool_backend.py          # Stateful agent backend, tool definitions, and SQLite checkpointer
 ├── tool_frontend.py         # Streamlit UI with multi-thread sidebar & streaming chat output
 ├── .gitignore               # Excludes secrets (.env), database files (*.db), and virtual environments
 ├── requirements.txt         # Project dependencies
@@ -96,26 +95,13 @@ AgenticAi/
 ## 🔬 Technical Implementation Deep Dive
 
 ### 1. State Schema & Message Reducer
-The state is managed as a `TypedDict` using LangGraph's `add_messages` reducer to atomically append incoming messages:
+The state is managed as a `TypedDict` using `add_messages` reducer to atomically append incoming messages:
 ```python
 class chatState(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
 ```
 
-### 2. State Machine & Graph Topology
-```python
-graph = StateGraph(chatState)
-graph.add_node('chitchat', talkwithLLM)
-graph.add_node('tools', Tool_Node)
-
-graph.add_edge(START, 'chitchat')
-graph.add_conditional_edges('chitchat', tools_condition)
-graph.add_edge('tools', 'chitchat')
-
-chatbot = graph.compile(checkpointer=checkpoint)
-```
-
-### 3. Multi-Thread Memory Management
+### 2. Multi-Thread Memory Management
 Thread IDs are generated using `uuid.uuid4()`. Saved thread IDs are dynamically fetched from the database checkpointer using `checkpoint.list(None)`:
 ```python
 def find_all_thread():
@@ -186,4 +172,4 @@ streamlit run tool_frontend.py
 ## 📜 Author & Acknowledgments
 
 - **Developer**: Mahi (`raikundan655@gmail.com`)
-- **Frameworks**: Built using [LangGraph](https://github.com/langchain-ai/langgraph), [Google Generative AI](https://ai.google.dev/), and [Streamlit](https://streamlit.io/).
+- **Frameworks**: Built using [Google Generative AI](https://ai.google.dev/), [LangChain](https://python.langchain.com/), and [Streamlit](https://streamlit.io/).
